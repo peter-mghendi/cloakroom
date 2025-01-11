@@ -1,4 +1,4 @@
-package main
+package utility
 
 import (
 	"context"
@@ -17,12 +17,12 @@ import (
 	"github.com/vbauerster/mpb/v8/decor"
 )
 
-// download downloads a file from 'url' to 'destinationPath'.
+// Download downloads a file from 'url' to 'destinationPath'.
 // It implements several best practices:
 //  1. Retries with exponential backoff.
 //  2. Downloads to a temporary .partial file, then renames on success.
 //  3. (Optional) Verifies the file's SHA-256 checksum if non-empty.
-//  4. Tracks progress via an mpb progress bar.
+//  4. Tracks progress via a progress bar.
 //  5. Respects context cancellation.
 //
 // Arguments:
@@ -34,7 +34,7 @@ import (
 //   - maxRetries: how many times to attempt with exponential backoff.
 //
 // Returns an error if something goes wrong or if checksum verification fails.
-func download(
+func Download(
 	ctx context.Context,
 	progress *mpb.Progress,
 	url string,
@@ -100,7 +100,7 @@ func download(
 }
 
 // fetch performs a single attempt at downloading the file into partialPath.
-// It also creates/updates an mpb progress bar for the read operation.
+// It also creates/updates a progress bar for the read operation.
 func fetch(ctx context.Context, p *mpb.Progress, url, partialPath, fileLabel string) error {
 	// Remove any leftover partial file before starting fresh
 	_ = os.Remove(partialPath)
@@ -154,7 +154,7 @@ func fetch(ctx context.Context, p *mpb.Progress, url, partialPath, fileLabel str
 		),
 		mpb.AppendDecorators(
 			decor.CountersKibiByte("% .2f / % .2f"),
-			decor.AverageETA(2),
+			decor.AverageETA(decor.ET_STYLE_MMSS),
 		),
 	)
 
