@@ -32,32 +32,7 @@ func Restore(manifest *lib.Manifest, wardrobe string, clean bool, force bool) er
 		group.Add(1)
 		go func(key string, plugin lib.Plugin) {
 			defer group.Done()
-
-			source, err := url(manifest.Host, key, plugin.Release, plugin.Artifact)
-			if err != nil {
-				fmt.Printf("[ERROR] building download URL for %s: %v\n", key, err)
-				return
-			}
-
-			destination := filepath.Join(wardrobe, plugin.Artifact)
-			if _, err := os.Stat(destination); err == nil {
-				if force {
-					fmt.Printf("[INFO] Removing existing file: %s\n", destination)
-					if err := os.RemoveAll(destination); err != nil {
-						errs <- fmt.Errorf("failed to remove existing file %s: %w", destination, err)
-						return
-					}
-				} else {
-					fmt.Printf("[SKIP] Plugin already exists: %s (use --force to overwrite)\n", destination)
-					return
-				}
-			}
-
-			if err := utility.Download(ctx, progress, source, destination, plugin.Hash, 3); err != nil {
-				fmt.Printf("[ERROR] downloading %s -> %s: %v\n", key, destination, err)
-			} else {
-				fmt.Printf("[OK] Downloaded %s -> %s\n", key, destination)
-			}
+			errs <- get(ctx, manifest.Host, wardrobe, key, plugin, force, progress)
 		}(key, plugin)
 	}
 
@@ -70,8 +45,35 @@ func Restore(manifest *lib.Manifest, wardrobe string, clean bool, force bool) er
 	return nil
 }
 
+func get(ctx context.Context, host string, wardrobe string, key string, plugin lib.Plugin, force bool, progress *mpb.Progress) error {
+	source, err := url(host, key, plugin)
+	if err != nil {
+		fmt.Printf("[ERROR] building download URL for %s: %v\n", key, err)
+	}
+
+	destination := filepath.Join(wardrobe, plugin.Artifact)
+	if _, err := os.Stat(destination); err == nil {
+		if force {
+			fmt.Printf("[INFO] Removing existing file: %s\n", destination)
+			if err := os.RemoveAll(destination); err != nil {
+				return fmt.Errorf("failed to remove existing file %s: %w", destination, err)
+			}
+		} else {
+
+		}
+
+	}
+
+	if err := utility.Download(ctx, progress, source, destination, plugin.Hash, 3); err != nil {
+		return fmt.Errorf("downloading %s -> %s: %w", key, destination, err)
+	}
+
+	fmt.Printf("[OK] Downloaded %s -> %s\n", key, destination)
+	return nil
+}
+
 // url returns a direct link for the JAR file from GitHub releases.
-func url(host, key, tag, artifact string) (string, error) {
+func url(host string, key string, plugin lib.Plugin) (string, error) {
 	parts := strings.Split(key, "/")
 	if len(parts) != 2 {
 		return "", errors.New("key must be in form owner/repo")
@@ -81,10 +83,6 @@ func url(host, key, tag, artifact string) (string, error) {
 
 	base := fmt.Sprintf("https://%s/%s/%s/releases", host, owner, repo)
 
-	if tag == "latest" {
-		// e.g. https://github.com/owner/repo/releases/latest/download/my-plugin.jar
-		return fmt.Sprintf("%s/latest/download/%s", base, artifact), nil
-	}
 	// e.g. https://github.com/owner/repo/releases/download/v1.2.0/my-plugin.jar
-	return fmt.Sprintf("%s/download/%s/%s", base, tag, artifact), nil
+	return fmt.Sprintf("%s/download/%s/%s", base, plugin.Tag, plugin.Artifact), nil
 }

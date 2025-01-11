@@ -9,8 +9,7 @@ type Manifest struct {
 
 // Plugin represents the config for each plugin denoted by a "user/repo" key
 type Plugin struct {
-	Name     string `json:"name"`
-	Release  string `json:"release"`
-	Artifact string `json:"artifact"`
-	Hash     string `json:"hash"`
+	Tag      string  `json:"tag"`
+	Artifact string  `json:"artifact"`
+	Hash     *string `json:"hash"`
 }

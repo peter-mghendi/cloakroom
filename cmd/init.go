@@ -55,5 +55,5 @@ Example:
 func init() {
 	rootCmd.AddCommand(initCmd)
 
-	initCmd.Flags().BoolP("force", "f", false, "Overwrite existing configuration file if it exists.")
+	initCmd.Flags().Bool("force", false, "Overwrite existing configuration file if it exists.")
 }

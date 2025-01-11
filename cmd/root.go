@@ -14,7 +14,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "cloakroom",
-	Short: "Manage Keycloak plugins with ease and consistency.",
+	Short: "Minimal plugin manager for Keycloak.",
 	Long: `Cloakroom is a CLI tool for managing Keycloak plugins across environments.
 
 It allows you to:

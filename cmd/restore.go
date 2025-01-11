@@ -36,12 +36,11 @@ Examples:
   cloakroom restore --clean --force
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		wardrobe := viper.GetString("WARDROBE")
 		manifest := &lib.Manifest{}
 		err := viper.Unmarshal(manifest)
-
 		cobra.CheckErr(err)
 
-		wardrobe := viper.GetString("WARDROBE")
 		clean, _ := cmd.Flags().GetBool("clean")
 		force, _ := cmd.Flags().GetBool("force")
 		err = handlers.Restore(manifest, wardrobe, clean, force)
@@ -52,6 +51,6 @@ Examples:
 func init() {
 	rootCmd.AddCommand(restoreCmd)
 
-	restoreCmd.Flags().BoolP("clean", "c", false, "Remove all plugins before restoring.")
-	restoreCmd.Flags().BoolP("force", "f", false, "Overwrite existing plugin directories.")
+	restoreCmd.Flags().Bool("clean", false, "Remove all plugins before restoring.")
+	restoreCmd.Flags().Bool("force", false, "Overwrite existing plugin directories.")
 }

@@ -39,7 +39,7 @@ func Download(
 	progress *mpb.Progress,
 	url string,
 	destination string,
-	hash string,
+	hash *string,
 	retries int,
 ) error {
 
@@ -75,8 +75,8 @@ func Download(
 			}
 
 			// If we have a checksum, verify it
-			if hash != "" {
-				if err := verify(destination, hash); err != nil {
+			if hash != nil {
+				if err := verify(destination, *hash); err != nil {
 					lastErr = err
 				} else {
 					return nil
