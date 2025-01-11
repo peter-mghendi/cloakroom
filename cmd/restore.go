@@ -7,9 +7,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var clean bool
-var force bool
-
 // restoreCmd represents the restore command
 var restoreCmd = &cobra.Command{
 	Use:   "restore",
@@ -45,6 +42,8 @@ Examples:
 		cobra.CheckErr(err)
 
 		wardrobe := viper.GetString("WARDROBE")
+		clean, _ := cmd.Flags().GetBool("clean")
+		force, _ := cmd.Flags().GetBool("force")
 		err = handlers.Restore(manifest, wardrobe, clean, force)
 		cobra.CheckErr(err)
 	},
@@ -53,6 +52,6 @@ Examples:
 func init() {
 	rootCmd.AddCommand(restoreCmd)
 
-	restoreCmd.Flags().BoolVarP(&clean, "clean", "c", false, "Remove all plugins before restoring.")
-	restoreCmd.Flags().BoolVarP(&force, "force", "f", false, "Overwrite existing plugin directories.")
+	restoreCmd.Flags().BoolP("clean", "c", false, "Remove all plugins before restoring.")
+	restoreCmd.Flags().BoolP("force", "f", false, "Overwrite existing plugin directories.")
 }

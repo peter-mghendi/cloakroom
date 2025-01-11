@@ -2,35 +2,58 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Initialize a new configuration file.",
+	Long: `The init command creates a new configuration file with default settings.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+If a configuration file already exists, it will not overwrite it unless the --force flag is provided.
+
+Example:
+  cloakroom init
+  cloakroom init --force`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("init called")
+		force, _ := cmd.Flags().GetBool("force")
+
+		defaultConfig := map[string]interface{}{
+			"version": "1.0",
+			"host":    "github.com",
+		}
+
+		if _, err := os.Stat(viper.ConfigFileUsed()); err == nil {
+			if !force {
+				fmt.Printf("[ERROR] Config file already exists: %s\n", viper.ConfigFileUsed())
+				fmt.Println("Use the --force flag to overwrite the existing configuration.")
+				return
+			} else {
+				fmt.Printf("[INFO] Overwriting config file: %s\n", viper.ConfigFileUsed())
+				_ = os.Remove(viper.ConfigFileUsed())
+			}
+		}
+
+		viper.Reset()
+		for key, value := range defaultConfig {
+			viper.Set(key, value)
+		}
+
+		if err := viper.WriteConfigAs("./cloakroom.json"); err != nil {
+			fmt.Printf("[ERROR] Failed to write config file: %v\n", err)
+			return
+		}
+
+		fmt.Println("[INFO] Configuration file initialized successfully.")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(initCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	initCmd.Flags().BoolP("force", "f", false, "Overwrite existing configuration file if it exists.")
 }

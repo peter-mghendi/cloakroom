@@ -61,16 +61,23 @@ func configure() {
 	viper.SetEnvPrefix("CLOAKROOM")
 	viper.AutomaticEnv()
 
-	viper.SetDefault("host", "github.com")
-
-	if err := viper.ReadInConfig(); err != nil {
-		var configFileNotFoundError viper.ConfigFileNotFoundError
-		if errors.As(err, &configFileNotFoundError) {
-			_, _ = fmt.Fprintln(os.Stderr, "[ERROR] Config file not found. Run 'cloakroom init' to create one")
-			os.Exit(1)
-		}
-		cobra.CheckErr(err)
+	err := viper.ReadInConfig()
+	if err == nil {
+		_, _ = fmt.Fprintf(os.Stdout, "[INFO] Using config file: %s\n", viper.ConfigFileUsed())
+		return
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "[INFO] Using config file: %s\n", viper.ConfigFileUsed())
+	var configFileNotFoundError viper.ConfigFileNotFoundError
+	if errors.As(err, &configFileNotFoundError) {
+		cmd, _, _ := rootCmd.Find(os.Args[1:])
+		if cmd != nil && cmd.Name() == "init" {
+			_, _ = fmt.Println("[INFO] No config file found. This is expected for 'init' command.")
+			return
+		}
+
+		_, _ = fmt.Println("[ERROR] Config file not found. Run 'cloakroom init' to create one.")
+		os.Exit(1)
+	}
+
+	cobra.CheckErr(err)
 }
