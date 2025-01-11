@@ -1,36 +1,29 @@
 package cmd
 
 import (
-	"fmt"
-
+	"cloakroom/lib/handlers"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // cleanCmd represents the clean command
 var cleanCmd = &cobra.Command{
 	Use:   "clean",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Remove all contents from the wardrobe directory.",
+	Long: `The clean command removes all files and directories in the specified wardrobe directory.
+It is used to prepare for a fresh environment without altering the manifest or lock file.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+The wardrobe directory must be defined before running this command.
+
+Example:
+  cloakroom clean`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("clean called")
+		wardrobe := viper.GetString("WARDROBE")
+		err := handlers.Clean(wardrobe)
+		cobra.CheckErr(err)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(cleanCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// cleanCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// cleanCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
