@@ -42,3 +42,18 @@ func Clean(dir string) error {
 
 	return nil
 }
+
+// Remove removes a single file from the filesystem.
+func Remove(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		fmt.Printf("[WARN] File does not exist: %s\n", path)
+		return nil
+	}
+
+	err := os.Remove(path)
+	if err != nil {
+		return fmt.Errorf("failed to delete file: %s, %w", path, err)
+	}
+
+	return nil
+}

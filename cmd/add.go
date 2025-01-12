@@ -39,7 +39,6 @@ Example:
 		err = handlers.Add(manifest, plugin, key, wardrobe, fetch)
 		cobra.CheckErr(err)
 
-		manifest.Plugins[key] = plugin
 		viper.Set("plugins", manifest.Plugins)
 		err = viper.WriteConfig()
 		cobra.CheckErr(err)

@@ -1,36 +1,45 @@
 package cmd
 
 import (
-	"fmt"
-
+	"cloakroom/lib"
+	"cloakroom/lib/handlers"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
-	Use:   "remove",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "remove <artifact>",
+	Short: "Remove a plugin from the manifest.",
+	Long: `The remove command removes a plugin from the manifest.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Optionally, use the --purge flag to delete the plugin's files from the wardrobe directory.
+
+Examples:
+  cloakroom remove plugin.jar
+  cloakroom remove plugin.jar --purge`,
+	Args: cobra.ExactArgs(1), // Requires exactly one argument: artifact name
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("remove called")
+		wardrobe := viper.GetString("WARDROBE")
+		manifest := &lib.Manifest{}
+		err := viper.Unmarshal(manifest)
+		cobra.CheckErr(err)
+
+		key := args[0]
+		purge, _ := cmd.Flags().GetBool("purge")
+
+		err = handlers.Remove(manifest, key, wardrobe, purge)
+		cobra.CheckErr(err)
+
+		viper.Set("plugins", manifest.Plugins)
+		err = viper.WriteConfig()
+		cobra.CheckErr(err)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(removeCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// removeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// removeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// Add flags for the remove command
+	removeCmd.Flags().Bool("purge", false, "Delete plugin files from the wardrobe after removal.")
 }
