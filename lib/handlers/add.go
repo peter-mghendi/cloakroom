@@ -2,15 +2,16 @@ package handlers
 
 import (
 	"cloakroom/lib"
+	"cloakroom/lib/utility"
 	"context"
 	"fmt"
 	"github.com/vbauerster/mpb/v8"
 )
 
 // Add adds a plugin to the manifest and optionally downloads it if --fetch is true.
-func Add(manifest *lib.Manifest, plugin lib.Plugin, key string, wardrobe string, fetch bool) error {
-	if _, exists := manifest.Plugins[key]; exists {
-		return fmt.Errorf("plugin %s already exists in the manifest", plugin.Artifact)
+func Add(manifest *lib.Manifest, plugin lib.Plugin, key string, wardrobe string, fetch bool, force bool) error {
+	if _, exists := manifest.Plugins[key]; exists && !force {
+		return fmt.Errorf("plugin %s already exists in the manifest (use --force to overwrite)", plugin.Artifact)
 	}
 
 	manifest.Plugins[key] = plugin
@@ -21,7 +22,7 @@ func Add(manifest *lib.Manifest, plugin lib.Plugin, key string, wardrobe string,
 		ctx := context.Background()
 		progress := mpb.New()
 
-		return get(ctx, manifest.Host, wardrobe, key, plugin, false, progress)
+		return utility.Restore(ctx, manifest.Host, wardrobe, key, plugin, force, progress)
 	}
 
 	return nil

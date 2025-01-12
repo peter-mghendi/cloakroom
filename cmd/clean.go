@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"cloakroom/lib/handlers"
+	"cloakroom/lib/utility"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -18,7 +19,7 @@ The wardrobe directory must be defined before running this command.
 Example:
   cloakroom clean`,
 	Run: func(cmd *cobra.Command, args []string) {
-		wardrobe := viper.GetString("WARDROBE")
+		wardrobe := viper.GetString(utility.Wardrobe)
 		err := handlers.Clean(wardrobe)
 		cobra.CheckErr(err)
 	},

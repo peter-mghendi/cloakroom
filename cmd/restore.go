@@ -3,6 +3,7 @@ package cmd
 import (
 	"cloakroom/lib"
 	"cloakroom/lib/handlers"
+	"cloakroom/lib/utility"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -36,7 +37,7 @@ Examples:
   cloakroom restore --clean --force
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		wardrobe := viper.GetString("WARDROBE")
+		wardrobe := viper.GetString(utility.Wardrobe)
 		manifest := &lib.Manifest{}
 		err := viper.Unmarshal(manifest)
 		cobra.CheckErr(err)

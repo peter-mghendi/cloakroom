@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"cloakroom/lib"
+	"cloakroom/lib/utility"
 	"errors"
 	"fmt"
 	"os"
@@ -13,7 +15,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "cloakroom",
+	Use:   utility.Cloakroom,
 	Short: "Minimal plugin manager for Keycloak.",
 	Long: `Cloakroom is a CLI tool for managing Keycloak plugins across environments.
 
@@ -55,11 +57,13 @@ func configure() {
 	} else {
 		viper.AddConfigPath(".")
 		viper.SetConfigType("json")
-		viper.SetConfigName("cloakroom")
+		viper.SetConfigName(utility.Cloakroom)
 	}
 
-	viper.SetEnvPrefix("CLOAKROOM")
+	viper.SetEnvPrefix(utility.Cloakroom)
 	viper.AutomaticEnv()
+
+	viper.SetDefault("plugins", make(map[string]lib.Plugin))
 
 	err := viper.ReadInConfig()
 	if err == nil {
