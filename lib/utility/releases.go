@@ -2,7 +2,7 @@ package utility
 
 import (
 	"context"
-	"crypto/sha256"
+	"crypto"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -190,11 +190,11 @@ func verify(filePath, expectedHex string) error {
 		}
 	}(f)
 
-	h := sha256.New()
-	if _, err := io.Copy(h, f); err != nil {
+	sha3 := crypto.SHA3_512.New()
+	if _, err := io.Copy(sha3, f); err != nil {
 		return fmt.Errorf("copy for checksum: %w", err)
 	}
-	actualHex := hex.EncodeToString(h.Sum(nil))
+	actualHex := hex.EncodeToString(sha3.Sum(nil))
 
 	// Normalize uppercase vs. lowercase
 	expectedHex = strings.ToLower(strings.TrimSpace(expectedHex))
