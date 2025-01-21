@@ -6,6 +6,48 @@
 
 ---
 
+## TL;DR
+
+Cloakroom transforms your plugin installation process from a **long series of ADD lines** into a **single restore step**. 
+Instead of cluttering your Dockerfile (or bash scripts) with multiple calls to fetch JARs from GitHub Releases, you simply define your plugins in Cloakroom’s manifest. 
+Cloakroom then downloads them all in one go.
+
+Before (manual plugin additions):
+
+```dockerfile
+FROM quay.io/keycloak/keycloak:26.1.0
+
+ADD --chown=keycloak:keycloak https://github.com/klausbetz/apple-identity-provider-keycloak/releases/download/1.7.1/apple-identity-provider-1.7.1.jar /opt/keycloak/providers/apple-identity-provider-1.7.1.jar
+ADD --chown=keycloak:keycloak https://github.com/mesutpiskin/keycloak-2fa-email-authenticator/releases/download/v0.4/keycloak-2fa-email-authenticator-v0.4-KC21.1.1.jar /opt/keycloak/providers/keycloak-2fa-email-authenticator-v0.4-KC21.1.1.jar
+ADD --chown=keycloak:keycloak https://github.com/slemke/keycloak-backup-email/releases/download/v0.0.1/keycloak-backup-email.jar /opt/keycloak/providers/keycloak-backup-email.jar
+ADD --chown=keycloak:keycloak https://github.com/leroyguillaume/keycloak-bcrypt/releases/download/v1.6.0/keycloak-bcrypt-1.6.0.jar /opt/keycloak/providers/keycloak-bcrypt-1.6.0.jar
+ADD --chown=keycloak:keycloak https://github.com/wadahiro/keycloak-discord/releases/download/v0.5.0/keycloak-discord-0.5.0.jar /opt/keycloak/providers/keycloak-discord-0.5.0.jar
+ADD --chown=keycloak:keycloak https://github.com/SnuK87/keycloak-kafka/releases/download/1.2.0/keycloak-kafka-1.2.0-jar-with-dependencies.jar /opt/keycloak/providers/keycloak-kafka-1.2.0-jar-with-dependencies.jar
+ADD --chown=keycloak:keycloak https://github.com/aerogear/keycloak-metrics-spi/releases/download/7.0.0/keycloak-metrics-spi-7.0.0.jar /opt/keycloak/providers/keycloak-metrics-spi-7.0.0.jar
+ADD --chown=keycloak:keycloak https://github.com/slemke/keycloak-terms-authenticator/releases/download/v0.0.1/keycloak-terms-authenticator-0.0.1.jar /opt/keycloak/providers/keycloak-terms-authenticator-0.0.1.jar
+
+# etc etc
+
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh start --optimized"]
+```
+
+After (using Cloakroom):
+
+```dockerfile
+FROM quay.io/keycloak/keycloak:26.1.0
+
+ADD --chmod=+x https://github.com/peter-mghendi/cloakroom/releases/download/v1.0/cloakroom /usr/local/bin/cloakroom
+ENV CLOAKROOM_WARDROBE=/opt/keycloak/providers
+RUN cloakroom restore
+
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh start --optimized"]
+```
+
+No more repetitive lines for each plugin—Cloakroom’s manifest contains those details.
+A single cloakroom restore command downloads everything, keeping your Dockerfile (and your sanity) intact.
+
+---
+
 ## Table of Contents
 1. [What is Cloakroom?](#what-is-cloakroom)
 2. [Why Use Cloakroom?](#why-use-cloakroom)
@@ -39,7 +81,7 @@ Cloakroom is a **command-line utility** for managing **Keycloak** plugins in a s
 ## Features
 - **Manifest-Driven**: Centralize plugin definitions in a file like `cloakroom.json` (or TOML/INI/HCL/HOCON).
 - **GitHub Releases**: Download JARs using `tag` (e.g., `"v1.2.0"` or `"latest"`) and an `artifact`.
-- **Optional Hash Verification**: Provide a `hash` (like SHA-3) to verify each download’s integrity.
+- **Optional Hash Verification**: Provide a **SHA3-512** `hash` to verify each download’s integrity.
 - **Flexible Config Formats**: Use JSON, TOML, INI, HCL, or HOCON—whichever suits your workflow.
 - **Environment-Aware**: Respects `CLOAKROOM_WARDROBE`, so you can easily switch directories across environments.
 
@@ -92,7 +134,7 @@ Within your manifest, you typically define:
 Each plugin definition contains:
 - **`tag`** (required): e.g. `"v1.2.0"` or `"latest"`
 - **`artifact`** (required): the name of the JAR in that release
-- **`hash`** (optional): for integrity checks
+- **`hash`** (optional): A **SHA3-512** hash for integrity checks
 
 ---
 
@@ -256,7 +298,7 @@ If Cloakroom finds more than one matching config (e.g. `cloakroom.json` and `clo
 In the directory defined by `CLOAKROOM_WARDROBE`. If it’s missing, Cloakroom exits with an error.
 
 **2. Can I use private GitHub Repos or GitHub Enterprise?**  
-For now, Cloakroom focuses on public GitHub releases. Other hosts might work if they follow a similar releases structure.
+For now, Cloakroom focuses on public GitHub releases. Other hosts (e.g. Gitea) might work if they follow a similar releases structure.
 
 **3. What happens if the JAR already exists?**  
 By default, Cloakroom skips it. Use `--force` to overwrite or `--clean` to remove existing files before fetching.
@@ -267,11 +309,9 @@ Currently, you pin a specific tag. Advanced version logic is on the roadmap.
 ---
 
 ## Contributing
-I'd love your contributions—whether that’s opening an issue, suggesting a feature, or sending a pull request. See [CONTRIBUTING.md](#) for details.
+I'd love your contributions—whether that’s opening an issue, suggesting a feature, or sending a pull request. See [CONTRIBUTING.md](#contributing) for details.
 
 ---
 
 ## License
-[MIT License](LICENSE) © 2025 Cloakroom Contributors
-
-Cloakroom helps you focus on making Keycloak more **secure** and **customizable**, without juggling multiple JAR downloads or Docker instructions. Enjoy easy, consistent plugin management in every environment.
+[MIT License](LICENSE) © 2025 Peter Mghendi
