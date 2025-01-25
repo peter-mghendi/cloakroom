@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build + Test
+    uses: ./.github/workflows/build.yml
+
+  prepare:
+    name: Prepare
+    needs: [build]
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.resolve.outputs.release }}
+      version: ${{ steps.resolve.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Resolve version
+        id: resolve
+        run: |
+          # Check current version in .version file
+          if [ ! -f .version ]; then
+            echo ".version file not found"
+            exit 1
+          fi
+          
+          CURRENT=$(cat .version)
+          
+          # Validate semantic versioning (numeric only for major.minor.patch)
+          if ! [[ $CURRENT =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version format"
+            exit 1
+          fi
+          
+          # Get latest release version
+          LATEST=$(gh release list --limit 1 | awk '{print $1}' | sed 's/^v//') 
+          
+          # Compare versions
+          if [ -z "$LATEST" ] || [ "$(printf '%s\n' "$CURRENT" "$LATEST" | sort -V | tail -n1)" = "$CURRENT" ]; then
+            echo "release=true" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT" >> $GITHUB_OUTPUT
+          else
+            echo "release=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    name: Release
+    needs: [prepare]
+    if: needs.prepare.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Create tag
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git tag "v${{ needs.prepare.outputs.version }}"
+          git push origin "v${{ needs.prepare.outputs.version }}"
+
+      - name: Release
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
