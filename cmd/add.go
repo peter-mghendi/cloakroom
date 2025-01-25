@@ -19,7 +19,7 @@ You can specify the plugin's repository and release details. Optionally, use the
 
 Example:
   cloakroom add example/my-plugin --tag v1.2.0 --artifact plugin.jar
-  cloakroom add example/my-plugin --tag latest --artifact plugin.jar --fetch`,
+  cloakroom add example/my-plugin --tag v1.3.5 --artifact plugin.jar --fetch`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		wardrobe := viper.GetString(utility.Wardrobe)

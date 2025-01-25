@@ -1,15 +1,15 @@
 package lib
 
-// Manifest represents the top-level structure of the cloakroom config
+// Manifest represents the top-level structure of the cloakroom manifest
 type Manifest struct {
-	Version string            `json:"version"`
-	Host    string            `json:"host"`
-	Plugins map[string]Plugin `json:"plugins"`
+	Version string            `mapstructure:"version"`
+	Host    string            `mapstructure:"host"`
+	Plugins map[string]Plugin `mapstructure:"plugins"`
 }
 
-// Plugin represents the config for each plugin denoted by a "user/repo" key
+// Plugin represents the configuration for each plugin denoted by a "user/repo" key
 type Plugin struct {
-	Tag      string  `json:"tag"`
-	Artifact string  `json:"artifact"`
-	Hash     *string `json:"hash"`
+	Tag      string  `mapstructure:"tag"`
+	Artifact string  `mapstructure:"artifact"`
+	Hash     *string `mapstructure:"hash"`
 }

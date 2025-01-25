@@ -58,7 +58,7 @@ A single cloakroom restore command downloads everything, keeping your Dockerfile
    - [Commands](#commands)
    - [Examples](#examples)
 7. [Configuration Examples](#configuration-examples)
-8. [Handling Multiple Config Files](#handling-multiple-config-files)
+8. [Handling Multiple Manifests](#handling-multiple-manifests)
 9. [FAQ](#faq)
 10. [Contributing](#contributing)
 11. [License](#license)
@@ -79,10 +79,10 @@ Cloakroom is a **command-line utility** for managing **Keycloak** plugins in a s
 ---
 
 ## Features
-- **Manifest-Driven**: Centralize plugin definitions in a file like `cloakroom.json` (or TOML/INI/HCL/HOCON).
-- **GitHub Releases**: Download JARs using `tag` (e.g., `"v1.2.0"` or `"latest"`) and an `artifact`.
+- **Manifest-Driven**: Centralize plugin definitions in a file like `cloakroom.json` (or TOML/INI/HCL/YAML).
+- **GitHub Releases**: Download JARs using `tag` (e.g., `"v1.2.0"`) and an `artifact`.
 - **Optional Hash Verification**: Provide a **SHA3-512** `hash` to verify each download’s integrity.
-- **Flexible Config Formats**: Use JSON, TOML, INI, HCL, or HOCON—whichever suits your workflow.
+- **Flexible Configuration Formats**: Use JSON, TOML, INI, HCL, or YAML—whichever suits your workflow.
 - **Environment-Aware**: Respects `CLOAKROOM_WARDROBE`, so you can easily switch directories across environments.
 
 ---
@@ -93,18 +93,18 @@ Cloakroom is a **command-line utility** for managing **Keycloak** plugins in a s
    Grab the latest release from the [Cloakroom GitHub Releases](https://github.com/peter-mghendi/cloakroom/releases).
 
 2. **Install**
-   ```
+   ```bash
    chmod +x cloakroom
    mv cloakroom /usr/local/bin/
    ```
 
 3. **Verify**
-   ```
+   ```bash
    cloakroom --help
    ```
 
 4. **Set `CLOAKROOM_WARDROBE`**
-   ```
+   ```bash
    export CLOAKROOM_WARDROBE="/opt/keycloak/providers"
    ```
    (On Windows, set it in your System Environment Variables.)
@@ -119,22 +119,23 @@ Cloakroom is a **command-line utility** for managing **Keycloak** plugins in a s
    - Cloakroom refuses to run if not set.
 
 ### Manifest File
-By default, Cloakroom looks for a `cloakroom.json` in the current directory (or a different file if `--config` is passed). It supports the following formats:
-- JSON ([spec](https://json.org))
-- TOML ([docs](https://toml.io))
-- INI ([wiki](https://en.wikipedia.org/wiki/INI_file))
-- HCL ([HashiCorp docs](https://developer.hashicorp.com/terraform/language/syntax/configuration))
-- HOCON ([Lightbend config](https://github.com/lightbend/config/blob/master/HOCON.md))
+If the --manifest option is specified, cloakroom attempts to load that file, failing if it does not exist or is invalid.
+Otherwise, cloakroom searches the current directory for a `cloakroom.{format}` file, where `{format}` is one of:
+- [HCL](https://developer.hashicorp.com/terraform/language/syntax/configuration)
+- [INI](https://en.wikipedia.org/wiki/INI_file)
+- [JSON](https://json.org)
+- [TOML](https://toml.io)
+- [YAML](https://yaml.org)
 
 Within your manifest, you typically define:
-- **`version`** (optional): e.g., `"1.0"`
-- **`host`** (optional): defaults to `"github.com"`, can point to other GitHub-compatible services
-- **`plugins`** (required): a map of `user/repo` → plugin definition
+- **`version`**: Mnifest version. The only valid value is `"1.0"`.
+- **`host`**: A host that is compatible with the GitHub releases format, e.g. `"github.com"`, or a URL to a hosted GitHub or Gitea server. 
+- **`plugins`** (required): a map of `user/repo` → plugin definition.
 
 Each plugin definition contains:
-- **`tag`** (required): e.g. `"v1.2.0"` or `"latest"`
-- **`artifact`** (required): the name of the JAR in that release
-- **`hash`** (optional): A **SHA3-512** hash for integrity checks
+- **`tag`** (required): The title of the release e.g. `"v1.2.0"`.
+- **`artifact`** (required): the name of the JAR in that release.
+- **`hash`** (optional): A **SHA3-512** hash for integrity checks.
 
 ---
 
@@ -213,6 +214,29 @@ cloakroom list
 
 ## Configuration Examples
 
+**HCL**
+```hcl
+version = "1.0"
+host    = "github.com"
+
+plugins "example/my-plugin" {
+   tag      = "v1.2.0"
+   artifact = "my-plugin-1.2.0.jar"
+   hash     = "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26"
+}
+```
+
+**INI**
+```ini
+version = 1.0
+host = github.com
+
+[plugins "example/my-plugin"]
+tag = v1.2.0
+artifact = my-plugin-1.2.0.jar
+hash = a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26
+```
+
 **JSON**:
 ```json
 {
@@ -222,7 +246,7 @@ cloakroom list
     "example/my-plugin": {
       "tag": "v1.2.0",
       "artifact": "my-plugin-1.2.0.jar",
-      "hash": null
+      "hash": "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26"
     }
   }
 }
@@ -236,56 +260,31 @@ host = "github.com"
 [plugins."example/my-plugin"]
 tag = "v1.2.0"
 artifact = "my-plugin-1.2.0.jar"
-hash = ""
+hash = "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26"
 ```
 
-**INI**
-```ini
-version = 1.0
-host = github.com
+**YAML**
+```yaml
+version: "1.0"
+host: "github.com"
 
-[plugins "example/my-plugin"]
-tag = v1.2.0
-artifact = my-plugin-1.2.0.jar
-hash =
+plugins:
+  "example/my-plugin":
+    tag: "v1.2.0"
+    artifact: "my-plugin-1.2.0.jar"
+    hash: "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26"
 ```
-
-**HCL**
-```hcl
-version = "1.0"
-host    = "github.com"
-
-plugin "example/my-plugin" {
-   tag      = "v1.2.0"
-   artifact = "my-plugin-1.2.0.jar"
-   hash     = ""
-}
-```
-
-**HOCON**
-```hocon
-version = "1.0"
-host    = "github.com"
-
-plugins {
-   "example/my-plugin" {
-      tag      = "v1.2.0"
-      artifact = "my-plugin-1.2.0.jar"
-      hash     = ""
-   }
-}
-```
-
 ---
 
-## Handling Multiple Config Files
+## Handling Multiple Manifests
 
-If Cloakroom finds more than one matching config (e.g. `cloakroom.json` and `cloakroom.toml`) without a specific `--config`:
+If Cloakroom finds more than one matching manifest (e.g. `cloakroom.json` and `cloakroom.toml`) without a specific `--manifest`:
 1. **Fail Immediately**:
    ```
-   Found multiple config files:
+   [ERROR] Found multiple manifests:
    - cloakroom.json
    - cloakroom.toml
+
    Cloakroom does not support multiple manifests at once.
    ```
 2. **Merge** *(planned)*: Cloakroom may eventually merge them, but only if no collisions are detected.

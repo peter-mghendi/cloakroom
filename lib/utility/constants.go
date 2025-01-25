@@ -1,4 +1,4 @@
 package utility
 
 const Cloakroom = "cloakroom"
-const Wardrobe = "WARDROBE"
+const Wardrobe = "wardrobe"
