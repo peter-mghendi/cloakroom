@@ -119,7 +119,7 @@ Cloakroom is a **command-line utility** for managing **Keycloak** plugins in a s
    - Cloakroom refuses to run if not set.
 
 ### Manifest File
-If the --manifest option is specified, cloakroom attempts to load that file, failing if it does not exist or is invalid.
+If the `--manifest` option is specified, cloakroom attempts to load that file, failing if it does not exist or is invalid.
 Otherwise, cloakroom searches the current directory for a `cloakroom.{format}` file, where `{format}` is one of:
 - [HCL](https://developer.hashicorp.com/terraform/language/syntax/configuration)
 - [INI](https://en.wikipedia.org/wiki/INI_file)
