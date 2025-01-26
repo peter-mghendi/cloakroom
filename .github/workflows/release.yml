@@ -53,7 +53,7 @@ jobs:
           echo "[INFO] Latest release is v$LATEST."
           
           # Compare versions
-          if [ -z "$LATEST" ] || [ "$(printf '%s\n' "$CURRENT" "$LATEST" | sort -V | tail -n1)" = "$CURRENT" ]; then
+          if [ -z "$LATEST" ] || [ "$(printf '%s\n' "$CURRENT" "$LATEST" | sort -V | tail -n1)" = "$CURRENT" ] && [ "$CURRENT" != "$LATEST" ]; then
             echo "[INFO] Releasing version v$CURRENT."
             echo "release=true" >> $GITHUB_OUTPUT
             echo "version=$CURRENT" >> $GITHUB_OUTPUT
