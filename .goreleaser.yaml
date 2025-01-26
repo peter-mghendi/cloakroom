@@ -42,7 +42,7 @@ universal_binaries:
 
 archives:
   - wrap_in_directory: true
-    formats: ['tar.gz']
+    formats: ['binary', 'tar.gz']
     name_template: >-
       {{ .ProjectName }}-v
       {{- .Version }}_
@@ -54,4 +54,4 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end }}
     format_overrides:
       - goos: windows
-        formats: ['zip']
+        formats: ['binary', 'zip']

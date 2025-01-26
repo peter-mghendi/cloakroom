@@ -21,17 +21,17 @@ import (
 // It implements several best practices:
 //  1. Retries with exponential backoff.
 //  2. Downloads to a temporary .partial file, then renames on success.
-//  3. (Optional) Verifies the file's SHA-256 checksum if non-empty.
+//  3. (Optional) Verifies the file's SHA3-512 checksum if non-empty.
 //  4. Tracks progress via a progress bar.
 //  5. Respects context cancellation.
 //
 // Arguments:
 //   - ctx: to allow cancellation (e.g., from signals or parent context).
-//   - p: mpb.Progress pointer for multi-file progress bar handling.
+//   - progress: mpb.Progress pointer for multi-file progress bar handling.
 //   - url: the direct download URL.
-//   - destinationPath: full path of the final file on disk.
-//   - expectedSHA256: if not empty, verifies the downloaded file matches this checksum (hex-encoded).
-//   - maxRetries: how many times to attempt with exponential backoff.
+//   - destination: full path of the final file on disk.
+//   - hash: if not empty, verifies the downloaded file matches this checksum (hex-encoded).
+//   - retries: how many times to attempt with exponential backoff.
 //
 // Returns an error if something goes wrong or if checksum verification fails.
 func Download(
@@ -48,8 +48,15 @@ func Download(
 		return fmt.Errorf("mkdir failed for %s: %v", filepath.Dir(destination), err)
 	}
 
-	// Partial file approach
-	partialPath := destination + ".partial"
+	// Partial file handling
+	partial := destination + ".partial"
+	if _, err := os.Stat(partial); err != nil {
+		return fmt.Errorf("download failed for %s: %v", partial, err)
+	}
+
+	if err := os.RemoveAll(partial); err != nil {
+		return fmt.Errorf("failed to remove existing partial file %s: %w", destination, err)
+	}
 
 	// For the progress bar labeling
 	filename := filepath.Base(destination)
@@ -67,10 +74,10 @@ func Download(
 		}
 
 		// Begin the single download attempt
-		lastErr = fetch(ctx, progress, url, partialPath, filename)
+		lastErr = fetch(ctx, progress, url, partial, filename)
 		if lastErr == nil {
 			// If the download succeeded, rename the partial file => final destination
-			if err := os.Rename(partialPath, destination); err != nil {
+			if err := os.Rename(partial, destination); err != nil {
 				return fmt.Errorf("rename failed: %w", err)
 			}
 
