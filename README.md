@@ -28,7 +28,7 @@ ADD --chown=keycloak:keycloak https://github.com/slemke/keycloak-terms-authentic
 
 # etc etc
 
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh start --optimized"]
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--optimized"]
 ```
 
 After (using Cloakroom):
@@ -36,11 +36,11 @@ After (using Cloakroom):
 ```dockerfile
 FROM quay.io/keycloak/keycloak:26.1.0
 
+ARG CLOAKROOM_WARDROBE=/opt/keycloak/providers
 ADD --chmod=+x https://github.com/peter-mghendi/cloakroom/releases/download/v0.1.2/cloakroom-v0.1.2_linux_x86_64 /usr/local/bin/cloakroom
-ENV CLOAKROOM_WARDROBE=/opt/keycloak/providers
 RUN cloakroom restore
 
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh start --optimized"]
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--optimized"]
 ```
 
 No more repetitive lines for each plugin—Cloakroom’s manifest contains those details.
