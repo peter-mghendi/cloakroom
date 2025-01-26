@@ -47,7 +47,7 @@ archives:
       {{ .ProjectName }}-v
       {{- .Version }}_
       {{- .Os }}_
-      {{ if eq .Arch "all" }}universal
+      {{- if eq .Arch "all" }}universal
       {{- else if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}

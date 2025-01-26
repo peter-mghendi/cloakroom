@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   build:
-    name: Build + Test
+    name: Build
     uses: ./.github/workflows/build.yml
 
   prepare:
@@ -40,6 +40,7 @@ jobs:
           fi
           
           CURRENT=$(cat .version)
+          echo "[INFO] Requested release v$CURRENT."
           
           # Validate semantic versioning (numeric only for major.minor.patch)
           if ! [[ $CURRENT =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -48,13 +49,16 @@ jobs:
           fi
           
           # Get latest release version
-          LATEST=$(gh release list --limit 1 | awk '{print $1}' | sed 's/^v//') 
+          LATEST=$(gh release list --limit 1 | awk '{print $1}' | sed 's/^v//')
+          echo "[INFO] Latest release is v$LATEST."
           
           # Compare versions
           if [ -z "$LATEST" ] || [ "$(printf '%s\n' "$CURRENT" "$LATEST" | sort -V | tail -n1)" = "$CURRENT" ]; then
+            echo "[INFO] Releasing version v$CURRENT."
             echo "release=true" >> $GITHUB_OUTPUT
             echo "version=$CURRENT" >> $GITHUB_OUTPUT
           else
+            echo "[INFO] Skipping release for version v$CURRENT."
             echo "release=false" >> $GITHUB_OUTPUT
           fi
         env:
