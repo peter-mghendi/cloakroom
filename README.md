@@ -36,7 +36,7 @@ After (using Cloakroom):
 ```dockerfile
 FROM quay.io/keycloak/keycloak:26.1.0
 
-ADD --chmod=+x https://github.com/peter-mghendi/cloakroom/releases/download/v1.0/cloakroom /usr/local/bin/cloakroom
+ADD --chmod=+x https://github.com/peter-mghendi/cloakroom/releases/download/v0.1.2/cloakroom-v0.1.2_linux_x86_64 /usr/local/bin/cloakroom
 ENV CLOAKROOM_WARDROBE=/opt/keycloak/providers
 RUN cloakroom restore
 
